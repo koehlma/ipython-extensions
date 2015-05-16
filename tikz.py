@@ -22,7 +22,7 @@ from string import Template
 from subprocess import call
 from tempfile import TemporaryDirectory
 
-import IPython.core.display as display
+import IPython.core.displaypub as displaypub
 
 import IPython.core.magic as magic
 import IPython.core.magic_arguments as magic_arguments
@@ -185,6 +185,10 @@ class TikzMagics(magic.Magics):
         '-o', '--options', nargs='*', default=[],
         help='options passed to graphviz'
     )
+    @magic_arguments.argument(
+        '-s', '--save', metavar='FILENAME',
+        help='save output pdf to file'
+    )
     @magic.cell_magic
     def tikz(self, line, cell):
         args = magic_arguments.parse_argstring(self.tikz, line)
@@ -199,7 +203,7 @@ class TikzMagics(magic.Magics):
             latex_packages.append(r'\usepackage{' + package + '}')
 
         tikz_libraries = []
-        for library in args.package:
+        for library in args.library + DEFAULT_LIBRARIES:
             tikz_libraries.append(r'\usetikzlibrary{' + library + '}')
 
         mapping = {'packages': '\n'.join(latex_packages),
@@ -208,8 +212,13 @@ class TikzMagics(magic.Magics):
         latex_document = latex_template.substitute(mapping)
 
         pdf_content = run_latex(latex_document)
+        if args.save:
+            with open(args.save, 'wb') as save_pdf:
+                save_pdf.write(pdf_content)
         if fmt is Format.SVG:
-            return display.SVG(convert_pdf2svg(pdf_content))
+            data = {'image/svg+xml': convert_pdf2svg(pdf_content)}
+            displaypub.publish_display_data(data=data,
+                                            metadata={'isolated' : 'true'})
         elif fmt is Format.PNG:
             return display.Image(convert_pdf2png(pdf_content))
 
