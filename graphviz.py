@@ -35,8 +35,6 @@ class Command(Enum):
 class Format(Enum):
     SVG = 'svg'
     PNG = 'png'
-    PDF = 'pdf'
-    PS = 'ps'
 
 
 _FORMAT_TO_DISPLAY = {
@@ -80,7 +78,7 @@ class GraphvizMagics(magic.Magics):
     @magic_arguments.magic_arguments()
     @magic_arguments.argument(
         '-f', '--format', default='svg', choices=('png', 'svg'),
-        help='output format (png/svg/ps/pdf)'
+        help='output format (png/svg)'
     )
     @magic_arguments.argument(
         '-c', '--command', default='dot',
